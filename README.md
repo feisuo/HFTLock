@@ -12,13 +12,17 @@ mvn clean package install
 cd ..  
   
 git clone https://github.com/ralgond/HFTLock.git  
+  
+cd HFTLock
+
+mvn clean package
 
 ## How To Run
-ht.pax.lockservice.example.LockServiceCluster - How to run a lock service cluster on a single machine.  
+ht.lock.example.LockServiceCluster - How to run a lock service cluster on a single machine.  
   
-ht.pax.lockservice.example.LockServiceCell - How to run a lock service cell.  
+ht.lock.example.LockServiceCell - How to run a lock service cell.  
   
-ht.pax.lockservice.example.Client03 - How to run a lock service client.  
+ht.lock.example.Client03 - How to run a lock service client.  
 
 ## HFTLock Software Stack
 
