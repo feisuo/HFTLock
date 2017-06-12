@@ -1,5 +1,5 @@
 # HFTLock
-A highly highly fault-tolerant distributed lock service modeled after Google's Chubby [1]
+A highly fault-tolerant distributed lock service modeled after Google's Chubby [1]
 
 ## How To Build
 
