@@ -26,5 +26,7 @@ ht.lock.example.Client03 - How to run a lock service client.
 
 ## HFTLock Software Stack
 
+![arch](https://github.com/ralgond/HFTLock/blob/master/doc/software_stack.png)  
+
 ## References
 [1] Mike Burrows. [The chubby lock service for loosely-coupled distributed systems](https://www.usenix.org/legacy/event/osdi06/tech/full_papers/burrows/burrows.pdf). In OSDI ’06: Proceedings of the 7th symposium on Operating systems design and implementation, pages 335–350, Berkeley, CA, USA, 2006. USENIX Association.  
