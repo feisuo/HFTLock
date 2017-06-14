@@ -24,7 +24,7 @@ import java.util.Map;
 
 import ht.pax.common.HandleFD;
 import ht.pax.internal.exception.PaxInternalException;
-import ht.pax.internal.storage.PaxNode;
+import ht.lock.PaxNode;
 
 /**
  * @author Teng Huang ht201509@163.com

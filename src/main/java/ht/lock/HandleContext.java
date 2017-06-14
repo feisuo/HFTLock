@@ -17,7 +17,7 @@
 package ht.lock;
 
 import ht.pax.common.HandleFD;
-import ht.pax.internal.storage.PaxNode;
+import ht.lock.PaxNode;
 
 /**
  * @author Teng Huang ht201509@163.com
