@@ -20,13 +20,13 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-import ht.pax.internal.common.op.PaxOperationResultUpdate;
+import ht.pax.common.PaxOperationResult;
 import ht.pax.util.KryoUtil;
 
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class PaxOperationResultHandler extends PaxOperationResultUpdate {
+public class PaxOperationResultHandler extends PaxOperationResult {
 	private static final long serialVersionUID = -763618247875554005L; //PaxOperationResultHandler
 	
 	public boolean lockHeld;
@@ -45,8 +45,8 @@ public class PaxOperationResultHandler extends PaxOperationResultUpdate {
 	
 	@Override
 	public String toString() {
-		return String.format("{iid:%d, errorMsg:%s, committedBefore:%s,lockHeld:%s,data:%s,dataVersion:%d}",
-				replicaVersion, errorMsg, committedBefore, lockHeld, data, dataVersion);
+		return String.format("{iid:%d,success:%s,errorMsg:%s,lockHeld:%s,data:%s,dataVersion:%d}",
+				replicaVersion, success, errorMsg, lockHeld, data, dataVersion);
 	}
 	
 	@Override

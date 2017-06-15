@@ -23,7 +23,7 @@ import ht.pax.common.Config;
 import ht.pax.common.HandleEvent;
 import ht.pax.common.HandlerFlag;
 import ht.lock.Handle;
-import ht.lock.SubRoutine;
+import ht.lock.LSClient;
 
 /**
  * @author Teng Huang ht201509@163.com
@@ -39,24 +39,26 @@ public class Client03 {
 				.setName("client");
 		
 
-		SubRoutine sb = new SubRoutine(baseConfig);
-		sb.start();
+		LSClient lsc = new LSClient(baseConfig);
+		lsc.start();
 		
-		Handle handle = sb.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandlerFlag.EPHEMERAL|HandlerFlag.TRY_LOCK);
+		logger.info("[{}] start success, uuid={}", lsc.uuid(), lsc.uuid());
 		
-		logger.info("[{}] open success, handler={}", sb.uuid(), handle);
+		Handle handle = lsc.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandlerFlag.EPHEMERAL|HandlerFlag.TRY_LOCK);
+		
+		logger.info("[{}] open success, handler={}", lsc.uuid(), handle);
 		
 		while (true) {
 			HandleEvent event = handle.pollHandlerEventNotify();
 			if (event != null) {
 				if (event.isUnlock() && !handle.isLockHeld()) {
-					logger.info("[{}] unlock event, try to lock, handle={}", sb.uuid(), handle);
+					logger.info("[{}] unlock event, try to lock, handle={}", lsc.uuid(), handle);
 					
 					try {
 						handle.lock();
-						logger.info("[{}] lock success, handle={}", sb.uuid(), handle);
+						logger.info("[{}] lock success, handle={}", lsc.uuid(), handle);
 					} catch (Exception e) {
-						logger.warn("[{}] lock failed, handle={}, errorMsg={}", sb.uuid(), handle, e.getMessage());
+						logger.warn("[{}] lock failed, handle={}, errorMsg={}", lsc.uuid(), handle, e.getMessage());
 					}
 				}
 			}
@@ -72,7 +74,7 @@ public class Client03 {
 		
 		Thread.sleep(1000);
 		
-		sb.stop();
+		lsc.stop();
 	}
 	
 	public static void main(String args[]) throws Exception {

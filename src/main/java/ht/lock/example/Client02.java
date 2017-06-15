@@ -19,7 +19,7 @@ package ht.lock.example;
 import ht.pax.common.Config;
 import ht.pax.common.HandlerFlag;
 import ht.lock.Handle;
-import ht.lock.SubRoutine;
+import ht.lock.LSClient;
 
 /**
  * @author Teng Huang ht201509@163.com
@@ -32,12 +32,12 @@ public class Client02 {
 				.setName("client");
 		
 
-		SubRoutine sb = new SubRoutine(baseConfig);
-		sb.start();
+		LSClient lsc = new LSClient(baseConfig);
+		lsc.start();
 		
-		System.out.println("uuid="+sb.uuid());
+		System.out.println("uuid="+lsc.uuid());
 		
-		Handle handler = sb.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandlerFlag.EPHEMERAL|HandlerFlag.TRY_LOCK);
+		Handle handler = lsc.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandlerFlag.EPHEMERAL|HandlerFlag.TRY_LOCK);
 		
 		System.out.println("open success, handler="+handler);
 		
@@ -63,7 +63,7 @@ public class Client02 {
 		
 		Thread.sleep(1000);
 		
-		sb.stop();
+		lsc.stop();
 	}
 	
 	public static void main(String args[]) throws Exception {
