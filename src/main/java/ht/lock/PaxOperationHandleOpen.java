@@ -22,41 +22,53 @@ import com.esotericsoftware.kryo.io.Output;
 
 import ht.pax.common.HandleFD;
 import ht.pax.common.PaxOperation;
+import ht.pax.util.KryoUtil;
 
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class PaxOperationHandlerLock extends PaxOperation {
-	
-	private static final long serialVersionUID = -763618247875553014L; //PaxOperationHandlerLock
+public class PaxOperationHandleOpen extends PaxOperation {
+	private static final long serialVersionUID = -763618247875553010L; //PaxOperationHandlerOpen
 	
 	public HandleFD fd;
+	public String path;
+	public byte[] data;
+	public int flag;
 	
-	public PaxOperationHandlerLock() {
+	public PaxOperationHandleOpen() {
 		
 	}
 	
-	public PaxOperationHandlerLock(long uuid, long luid, HandleFD fd) {
+	public PaxOperationHandleOpen(long uuid, long luid, HandleFD fd, String path, byte[] data, int flag) {
 		super(uuid, luid);
 		this.fd = fd;
-	}
-	
-	@Override
-	public String toString() {
-		return String.format("{uuid:%d,luid:%d,type:lockHandler,fd:%s}", 
-				uuid, luid, fd);
+		this.path = path;
+		this.data = data;
+		this.flag = flag;
 	}
 	
 	@Override
 	public void write (Kryo kryo, Output output) {
 		super.write(kryo, output);
 		kryo.writeClassAndObject(output, fd);
+		output.writeString(path);
+		output.writeInt(flag);
+		KryoUtil.writeByteArray(output, data);
 	}
-	
 
 	@Override
 	public void read (Kryo kryo, Input input) {
 		super.read(kryo, input);
 		fd = (HandleFD)kryo.readClassAndObject(input);
+		path = input.readString();
+		flag = input.readInt();
+		data = KryoUtil.readByteArray(input);
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("{uuid:%d,luid:%d,type:openHandler,fd:%s,path:%s,data:%s,flag:%d}", 
+				uuid, luid, fd, path, data, flag);
 	}
 }
+

@@ -162,16 +162,16 @@ public class LSClient extends PaxClient {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void onOperatorResult(PaxOperationResult result0, RequestContext reqCtx) {
-		if (result0 instanceof PaxOperationResultHandler) {
-			PaxOperationResultHandler result = (PaxOperationResultHandler)result0;
+		if (result0 instanceof PaxOperationResultHandle) {
+			PaxOperationResultHandle result = (PaxOperationResultHandle)result0;
 			if (!result.success) {
 				((Future<Object>)reqCtx.future).finish(result.success, result.errorMsg, null);
 				return;
 			}
 			
 			ClientReq req = (ClientReq)reqCtx.req;
-			if (req.cmd instanceof PaxOperationHandlerOpen) {
-				PaxOperationHandlerOpen op = (PaxOperationHandlerOpen)req.cmd;
+			if (req.cmd instanceof PaxOperationHandleOpen) {
+				PaxOperationHandleOpen op = (PaxOperationHandleOpen)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
 				if (handle != null) {
 					handle.setData(result.data);
@@ -181,8 +181,8 @@ public class LSClient extends PaxClient {
 				} else {
 					logger.warn("[{}] handle not fould, result={}", uuid(), result);
 				}
-			} else if (req.cmd instanceof PaxOperationHandlerRead) {
-				PaxOperationHandlerRead op = (PaxOperationHandlerRead)req.cmd;
+			} else if (req.cmd instanceof PaxOperationHandleRead) {
+				PaxOperationHandleRead op = (PaxOperationHandleRead)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
 				if (handle != null) {
 					handle.setData(result.data);
@@ -191,8 +191,8 @@ public class LSClient extends PaxClient {
 				} else {
 					logger.warn("[{}] handle not fould, result={}", uuid(), result);
 				}
-			} else if (req.cmd instanceof PaxOperationHandlerWrite) {
-				PaxOperationHandlerWrite op = (PaxOperationHandlerWrite)req.cmd;
+			} else if (req.cmd instanceof PaxOperationHandleWrite) {
+				PaxOperationHandleWrite op = (PaxOperationHandleWrite)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
 				if (handle != null) {
 					handle.setData(op.data);
@@ -201,8 +201,8 @@ public class LSClient extends PaxClient {
 				} else {
 					logger.warn("[{}] handle not fould, result={}", uuid(), result);
 				}
-			} else if (req.cmd instanceof PaxOperationHandlerLock) {
-				PaxOperationHandlerLock op = (PaxOperationHandlerLock)req.cmd;
+			} else if (req.cmd instanceof PaxOperationHandleLock) {
+				PaxOperationHandleLock op = (PaxOperationHandleLock)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
 				if (handle != null) {
 					handle.setLockHeld(true);
@@ -210,9 +210,9 @@ public class LSClient extends PaxClient {
 				} else {
 					logger.warn("[{}] handle not fould, result={}", uuid(), result);
 				}
-			} else if (req.cmd instanceof PaxOperationHandlerClose) {
+			} else if (req.cmd instanceof PaxOperationHandleClose) {
 				//do nothing
-				PaxOperationHandlerClose op = (PaxOperationHandlerClose)req.cmd;
+				PaxOperationHandleClose op = (PaxOperationHandleClose)req.cmd;
 				handleMap.remove(op.fd);
 			}
 		}
@@ -274,7 +274,7 @@ public class LSClient extends PaxClient {
 		HandleImpl handle = new HandleImpl(fd, path, ((flag & HandlerFlag.EPHEMERAL) != 0));
 		handleMap.put(fd, handle);
 		
-		Command cmd = new PaxOperationHandlerOpen(uuid(), luid, fd, path, data, flag);
+		Command cmd = new PaxOperationHandleOpen(uuid(), luid, fd, path, data, flag);
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
 		RequestContext reqCtx = new RequestContext(req, luid, future);
 		addReqCtx(reqCtx);
@@ -293,7 +293,7 @@ public class LSClient extends PaxClient {
 		long luid = genIsn();
 		
 		DefaultFuture<byte[]> future = new DefaultFuture<>();
-		Command cmd = new PaxOperationHandlerRead(uuid(), luid, handle.fd());
+		Command cmd = new PaxOperationHandleRead(uuid(), luid, handle.fd());
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
 		RequestContext reqCtx = new RequestContext(req, luid, future);
 		addReqCtx(reqCtx);
@@ -312,7 +312,7 @@ public class LSClient extends PaxClient {
 		long luid = genIsn();
 		
 		DefaultFuture<Long> future = new DefaultFuture<>();
-		Command cmd = new PaxOperationHandlerWrite(uuid(), luid, handle.fd(), data);
+		Command cmd = new PaxOperationHandleWrite(uuid(), luid, handle.fd(), data);
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
 		RequestContext reqCtx = new RequestContext(req, luid, future);
 		addReqCtx(reqCtx);
@@ -331,7 +331,7 @@ public class LSClient extends PaxClient {
 		long luid = genIsn();
 		
 		DefaultFuture<Void> future = new DefaultFuture<>();
-		Command cmd = new PaxOperationHandlerClose(uuid(), luid, handle.fd());
+		Command cmd = new PaxOperationHandleClose(uuid(), luid, handle.fd());
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
 		RequestContext reqCtx = new RequestContext(req, luid, future);
 		addReqCtx(reqCtx);
@@ -350,7 +350,7 @@ public class LSClient extends PaxClient {
 		long luid = genIsn();
 		
 		DefaultFuture<Boolean> future = new DefaultFuture<>();
-		Command cmd = new PaxOperationHandlerLock(uuid(), luid, handle.fd());
+		Command cmd = new PaxOperationHandleLock(uuid(), luid, handle.fd());
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
 		RequestContext reqCtx = new RequestContext(req, luid, future);
 		addReqCtx(reqCtx);

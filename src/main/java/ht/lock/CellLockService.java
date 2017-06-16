@@ -33,6 +33,7 @@ import ht.pax.common.HandlerFlag;
 import ht.pax.common.LeaderInfo;
 import ht.pax.common.PaxOperationResult;
 import ht.pax.internal.message.EventNotify;
+import ht.pax.internal.serialization.KryoContext;
 
 /**
  * @author Teng Huang ht201509@163.com
@@ -61,9 +62,9 @@ public class CellLockService implements CellService {
 
 	@Override
 	public boolean onRequest(Command cmd) {
-		if (cmd instanceof PaxOperationHandlerRead) {
-			PaxOperationHandlerRead op = (PaxOperationHandlerRead)cmd;
-			PaxOperationResultHandler result = new PaxOperationResultHandler();
+		if (cmd instanceof PaxOperationHandleRead) {
+			PaxOperationHandleRead op = (PaxOperationHandleRead)cmd;
+			PaxOperationResultHandle result = new PaxOperationResultHandle();
 			result.replicaVersion = smr.version();
 			HandleContext ctx = handlerManager.getContext(op.fd);
 			if (ctx == null) {
@@ -85,9 +86,9 @@ public class CellLockService implements CellService {
 	public PaxOperationResult onCommand(long iid, Command cmd) {
 		PaxOperationResult result0 = null;
 		
-		if (cmd instanceof PaxOperationHandlerOpen) {
-			PaxOperationHandlerOpen op = (PaxOperationHandlerOpen)cmd;
-			PaxOperationResultHandler result = new PaxOperationResultHandler();
+		if (cmd instanceof PaxOperationHandleOpen) {
+			PaxOperationHandleOpen op = (PaxOperationHandleOpen)cmd;
+			PaxOperationResultHandle result = new PaxOperationResultHandle();
 			result.replicaVersion = iid;
 			boolean ephemeral = ((op.flag & HandlerFlag.EPHEMERAL) != 0);
 			boolean tryLock = ((op.flag & HandlerFlag.TRY_LOCK) != 0);
@@ -112,9 +113,9 @@ public class CellLockService implements CellService {
 			}
 			
 			result0 = result;
-		} else if (cmd instanceof PaxOperationHandlerWrite) {
-			PaxOperationHandlerWrite op = (PaxOperationHandlerWrite)cmd;
-			PaxOperationResultHandler result = new PaxOperationResultHandler();
+		} else if (cmd instanceof PaxOperationHandleWrite) {
+			PaxOperationHandleWrite op = (PaxOperationHandleWrite)cmd;
+			PaxOperationResultHandle result = new PaxOperationResultHandle();
 			result.replicaVersion = iid;
 			try {
 				long dataVersion = handlerManager.write(op.fd, op.data);
@@ -126,9 +127,9 @@ public class CellLockService implements CellService {
 			}
 			
 			result0 = result;
-		} else if (cmd instanceof PaxOperationHandlerClose) {
-			PaxOperationHandlerClose op = (PaxOperationHandlerClose)cmd;
-			PaxOperationResultHandler result = new PaxOperationResultHandler();
+		} else if (cmd instanceof PaxOperationHandleClose) {
+			PaxOperationHandleClose op = (PaxOperationHandleClose)cmd;
+			PaxOperationResultHandle result = new PaxOperationResultHandle();
 			result.replicaVersion = iid;
 			result.success = true;
 			
@@ -138,9 +139,9 @@ public class CellLockService implements CellService {
 			}
 			
 			result0 = result;
-		} else if (cmd instanceof PaxOperationHandlerLock) {
-			PaxOperationHandlerLock op = (PaxOperationHandlerLock)cmd;
-			PaxOperationResultHandler result = new PaxOperationResultHandler();
+		} else if (cmd instanceof PaxOperationHandleLock) {
+			PaxOperationHandleLock op = (PaxOperationHandleLock)cmd;
+			PaxOperationResultHandle result = new PaxOperationResultHandle();
 			result.replicaVersion = iid;
 			try {
 				result.success = handlerManager.lock(op.fd);
@@ -180,13 +181,8 @@ public class CellLockService implements CellService {
 			logger.debug("[{}] onClientLoss, clientUuid={}, ctxCnt={}, lockHeldFDList={}", uuid(), cc.getUuid(), ctxCnt, fdList);
 		}
 	}
-
-	@Override
-	public String getSummaryInfo() {
-		return null;
-	}
-
-	protected void notifyClient(HandleContext ctx) {
+	
+	void notifyClient(HandleContext ctx) {
 		if (!smr.isLeader())
 			return;
 		
@@ -200,5 +196,22 @@ public class CellLockService implements CellService {
 				smr.sendToClient(watcher.fd().uuid, noti);
 			}
 		}
+	}
+
+	@Override
+	public String getSummaryInfo() {
+		return null;
+	}
+	
+	@Override
+	public void registerClass(KryoContext kryoCtx) {
+		kryoCtx.register(PaxOperationHandleClose.class);
+		kryoCtx.register(PaxOperationHandleLock.class);
+		kryoCtx.register(PaxOperationHandleOpen.class);
+		kryoCtx.register(PaxOperationHandleRead.class);
+		kryoCtx.register(PaxOperationHandleWrite.class);
+		kryoCtx.register(PaxOperationNode.class);
+		kryoCtx.register(PaxOperationNodeCreate.class);
+		kryoCtx.register(PaxOperationResultHandle.class);
 	}
 }

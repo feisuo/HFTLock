@@ -26,21 +26,27 @@ import ht.pax.common.PaxOperation;
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class PaxOperationHandlerClose extends PaxOperation {
-	private static final long serialVersionUID = -763618247875553013L; //PaxOperationHandlerClose
+public class PaxOperationHandleLock extends PaxOperation {
+	
+	private static final long serialVersionUID = -763618247875553014L; //PaxOperationHandlerLock
 	
 	public HandleFD fd;
 	
-	public PaxOperationHandlerClose() {
+	public PaxOperationHandleLock() {
 		
 	}
 	
-	public PaxOperationHandlerClose(long uuid, long luid, HandleFD fd) {
+	public PaxOperationHandleLock(long uuid, long luid, HandleFD fd) {
 		super(uuid, luid);
 		this.fd = fd;
 	}
 	
-
+	@Override
+	public String toString() {
+		return String.format("{uuid:%d,luid:%d,type:lockHandler,fd:%s}", 
+				uuid, luid, fd);
+	}
+	
 	@Override
 	public void write (Kryo kryo, Output output) {
 		super.write(kryo, output);
@@ -52,12 +58,5 @@ public class PaxOperationHandlerClose extends PaxOperation {
 	public void read (Kryo kryo, Input input) {
 		super.read(kryo, input);
 		fd = (HandleFD)kryo.readClassAndObject(input);
-	}
-	
-
-	@Override
-	public String toString() {
-		return String.format("{uuid:%d,luid:%d,type:closeHandler,fd:%s}", 
-				uuid, luid, fd);
 	}
 }

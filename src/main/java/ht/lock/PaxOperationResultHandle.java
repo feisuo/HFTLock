@@ -26,18 +26,18 @@ import ht.pax.util.KryoUtil;
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class PaxOperationResultHandler extends PaxOperationResult {
+public class PaxOperationResultHandle extends PaxOperationResult {
 	private static final long serialVersionUID = -763618247875554005L; //PaxOperationResultHandler
 	
 	public boolean lockHeld;
 	public long dataVersion;
 	public byte[] data;
 	
-	public PaxOperationResultHandler() {
+	public PaxOperationResultHandle() {
 		
 	}
 	
-	public PaxOperationResultHandler(boolean lockHeld, byte[] data, long dataVersion) {
+	public PaxOperationResultHandle(boolean lockHeld, byte[] data, long dataVersion) {
 		this.lockHeld = lockHeld;
 		this.data = data;
 		this.dataVersion = dataVersion;

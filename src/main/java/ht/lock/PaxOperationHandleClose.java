@@ -22,25 +22,22 @@ import com.esotericsoftware.kryo.io.Output;
 
 import ht.pax.common.HandleFD;
 import ht.pax.common.PaxOperation;
-import ht.pax.util.KryoUtil;
 
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class PaxOperationHandlerWrite extends PaxOperation {
-	private static final long serialVersionUID = -763618247875553012L; //PaxOperationHandlerWrite
+public class PaxOperationHandleClose extends PaxOperation {
+	private static final long serialVersionUID = -763618247875553013L; //PaxOperationHandlerClose
 	
 	public HandleFD fd;
-	public byte[] data;
 	
-	public PaxOperationHandlerWrite() {
+	public PaxOperationHandleClose() {
 		
 	}
 	
-	public PaxOperationHandlerWrite(long uuid, long luid, HandleFD fd, byte[] data) {
+	public PaxOperationHandleClose(long uuid, long luid, HandleFD fd) {
 		super(uuid, luid);
 		this.fd = fd;
-		this.data = data;
 	}
 	
 
@@ -48,7 +45,6 @@ public class PaxOperationHandlerWrite extends PaxOperation {
 	public void write (Kryo kryo, Output output) {
 		super.write(kryo, output);
 		kryo.writeClassAndObject(output, fd);
-		KryoUtil.writeByteArray(output, data);
 	}
 	
 
@@ -56,13 +52,13 @@ public class PaxOperationHandlerWrite extends PaxOperation {
 	public void read (Kryo kryo, Input input) {
 		super.read(kryo, input);
 		fd = (HandleFD)kryo.readClassAndObject(input);
-		data = KryoUtil.readByteArray(input);
 	}
 	
 
 	@Override
 	public String toString() {
-		return String.format("{uuid:%d,luid:%d,type:writeHandler,fd:%s,data:%s}", 
-				uuid, luid, fd, data);
+		return String.format("{uuid:%d,luid:%d,type:closeHandler,fd:%s}", 
+				uuid, luid, fd);
 	}
 }
+
