@@ -27,7 +27,7 @@ import ht.pax.common.PaxOperation;
  * @author Teng Huang ht201509@163.com
  */
 public class PaxOperationHandleClose extends PaxOperation {
-	private static final long serialVersionUID = -763618247875553013L; //PaxOperationHandlerClose
+	private static final long serialVersionUID = -763618247875563013L; //PaxOperationHandlerClose
 	
 	public HandleFD fd;
 	

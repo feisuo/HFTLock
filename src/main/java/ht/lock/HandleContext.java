@@ -17,7 +17,6 @@
 package ht.lock;
 
 import ht.pax.common.HandleFD;
-import ht.lock.PaxNode;
 
 /**
  * @author Teng Huang ht201509@163.com
@@ -25,7 +24,7 @@ import ht.lock.PaxNode;
 public class HandleContext {
 	HandleFD fd;
 	String path;
-	PaxNode node;
+	Node node;
 	boolean lockHeld;
 	
 	public HandleContext(HandleFD fd, String path) {
@@ -41,7 +40,7 @@ public class HandleContext {
 		return path;
 	}
 	
-	public PaxNode node() {
+	public Node node() {
 		return node;
 	}
 	
@@ -54,10 +53,10 @@ public class HandleContext {
 	}
 	
 	public byte[] data() {
-		return node.value;
+		return node.data;
 	}
 	
 	public long dataVersion() {
-		return node.valueVersion;
+		return node.dataVersion;
 	}
 }

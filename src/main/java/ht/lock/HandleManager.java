@@ -24,7 +24,6 @@ import java.util.Map;
 
 import ht.pax.common.HandleFD;
 import ht.pax.internal.exception.PaxInternalException;
-import ht.lock.PaxNode;
 
 /**
  * @author Teng Huang ht201509@163.com
@@ -71,7 +70,7 @@ public class HandleManager {
 			path2WatcherList.put(path, watcherList);
 		}
 		
-		newCtx.node = (watcherList.size() == 0 ? new PaxNode() : firstWatcher(watcherList).node);
+		newCtx.node = (watcherList.size() == 0 ? new Node() : firstWatcher(watcherList).node);
 		
 		handleMap.put(fd, newCtx);
 		watcherList.put(fd, newCtx);
@@ -111,7 +110,7 @@ public class HandleManager {
 			throw new PaxInternalException("null ctx");
 		}
 		
-		return ctx.node.value;
+		return ctx.node.data;
 	}
 	
 	/*
@@ -127,10 +126,10 @@ public class HandleManager {
 		if (!ctx.isLockHeld())
 			throw new PaxInternalException("not held");
 		
-		ctx.node.value = data;
-		ctx.node.valueVersion++;
+		ctx.node.data = data;
+		ctx.node.dataVersion++;
 		
-		return ctx.node.valueVersion;
+		return ctx.node.dataVersion;
 	}
 	
 	public HandleContext close(HandleFD fd) {		

@@ -26,43 +26,34 @@ import ht.pax.util.KryoUtil;
  * @author Teng Huang ht201509@163.com
  */
 public class PaxOperationNodeCreate extends PaxOperationNode {
-	private static final long serialVersionUID = -763618247875553008L; //PaxOperationNodeCreate
+	private static final long serialVersionUID = -763618247875563008L; //PaxOperationNodeCreate
 	
-	public byte[] value;
-	public long version;
-	public long valueVersion;
+	public byte[] data;
 	
 	public PaxOperationNodeCreate() {
 		
 	}
 	
-	public PaxOperationNodeCreate(long uuid, long luid, String path, byte[] value, long version, long valueVersion) {
+	public PaxOperationNodeCreate(long uuid, long luid, String path, byte[] data, long version, long valueVersion) {
 		super(uuid, luid, PaxOperationNode.CREATE, path);
-		this.value = value;
-		this.version = version;
-		this.valueVersion = valueVersion;
+		this.data = data;
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("{uuid:%d,luid:%d,opType:createNode,path:%s,value.md5:%s,version:%d,valueVersion:%d}", 
-				uuid, luid, path, "", version, valueVersion);
+		return String.format("{uuid:%d,luid:%d,opType:createNode,path:%s,data:%s}", 
+				uuid, luid, path, data);
 	}
 	
 	@Override
 	public void write (Kryo kryo, Output output) {
 		super.write(kryo, output);
-		KryoUtil.writeByteArray(output, value);
-		output.writeLong(version);
-		output.writeLong(valueVersion);
+		KryoUtil.writeByteArray(output, data);
 	}
-	
 
 	@Override
 	public void read (Kryo kryo, Input input) {
 		super.read(kryo, input);
-		value = KryoUtil.readByteArray(input);
-		version = input.readLong();
-		valueVersion = input.readLong();
+		data = KryoUtil.readByteArray(input);
 	}
 }

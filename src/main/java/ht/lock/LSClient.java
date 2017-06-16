@@ -360,6 +360,9 @@ public class LSClient extends PaxClient {
 		return future;
 	}
 	
+	/*
+	 * call by user
+	 */
 	
 	public Handle open(String path, byte[] data, int flag) throws Exception {
 		Future<Handle> f = openAsync(path, data, flag);
@@ -375,5 +378,24 @@ public class LSClient extends PaxClient {
 		if (!f.isSuccess())
 			throw new PaxClientException(f.errorMsg());
 		return true;
+	}
+	
+	public NodeInfo queryNode(String path) throws Exception {
+		return null; // TODO
+	}
+	
+	public boolean deleteNode(String path) throws Exception {
+		return false; // TODO
+	}
+	
+	/**
+	 * 
+	 * @param path
+	 * @param data
+	 * @return the version of data
+	 * @throws Exception
+	 */
+	public long updateNode(String path, byte[] data) throws Exception {
+		return 0; // TODO
 	}
 }

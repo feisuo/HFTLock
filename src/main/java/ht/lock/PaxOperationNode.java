@@ -27,13 +27,14 @@ import ht.pax.common.PaxOperation;
  */
 public class PaxOperationNode extends PaxOperation {
 
-	private static final long serialVersionUID = -763618247875553007L; //PaxOperationNode
+	private static final long serialVersionUID = -763618247875563007L; //PaxOperationNode
 	
 	public final static byte CREATE = 1;
 	public final static byte DELETE = 2;
-	public final static byte UPDATE_VALUE = 3;
-	public final static byte DELETE_ALL_CHILD = 4;
-	public final static byte LIST_CHILDREN = 5;
+	public final static byte DELETE_CHILDREN = 4;
+	public final static byte QUERY_CHILDREN = 5;
+	public final static byte QUERY_DATA = 6;
+	public final static byte QUERY_ALL = 7;
 	
 	public byte opType;
 	public String path;

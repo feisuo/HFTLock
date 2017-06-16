@@ -1,12 +1,16 @@
 package ht.lock;
 
-import ht.lock.PaxNode;
+import ht.lock.Node;
 
 public class NodeTree {
 	/**
 	 * pnode subsystem 
 	 */
-	PaxNode pnodeRoot = new PaxNode("/");
+	Node pnodeRoot = new Node("/");
+	
+	public Node find(String path) throws Exception {
+		return pnodeRoot.find(path);
+	}
 	
 	public boolean insert(String path, byte[] value) throws Exception {
 		pnodeRoot.insert(path, value);
@@ -23,8 +27,14 @@ public class NodeTree {
 		return false;
 	}
 	
-	public boolean update(String path, byte[] value) throws Exception {
-		pnodeRoot.updateValue(path, value);
-		return false;
+	/**
+	 * 
+	 * @param path
+	 * @param value
+	 * @return the dataVersion;
+	 * @throws Exception
+	 */
+	public long update(String path, byte[] value) throws Exception {
+		return pnodeRoot.updateValue(path, value);
 	}
 }

@@ -194,7 +194,7 @@ public class TestHandleManager {
 		}
 		
 		assertNull(t);
-		assertTrue(ReflectionUtil.isEquals(ctx1.node().value, data));
+		assertTrue(ReflectionUtil.isEquals(ctx1.node().data, data));
 	}
 }
 

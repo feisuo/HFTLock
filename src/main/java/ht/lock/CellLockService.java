@@ -43,11 +43,13 @@ public class CellLockService implements CellService {
 	private static Logger logger = LoggerFactory.getLogger(CellLockService.class);
 	
 	final HandleManager handlerManager;
+	final NodeTree nodeTree;
 	SMRService smr;
 	long uuid;
 	
 	public CellLockService() {
 		this.handlerManager = new HandleManager();
+		this.nodeTree = new NodeTree();
 	}
 	
 	long uuid() {
@@ -71,12 +73,79 @@ public class CellLockService implements CellService {
 				result.success = false;
 				result.errorMsg = "null ctx";
 			} else {
-				result.data = ctx.node().value;
-				result.dataVersion = ctx.node().valueVersion;
+				result.data = ctx.node().data;
+				result.dataVersion = ctx.node().dataVersion;
 				result.success = true;
 			}
 			smr.respCmd(cmd, smr.version(), result);
 			return false;
+		} else if (cmd instanceof PaxOperationNode) {
+			PaxOperationNode op0 = (PaxOperationNode)cmd;
+			if (op0.opType == PaxOperationNode.QUERY_ALL) {
+				PaxOperationResultNodeQuery result = new PaxOperationResultNodeQuery();
+				result.replicaVersion = smr.version();
+				try {
+					Node found = nodeTree.find(op0.path);
+					if (found != null) {
+						result.success = true;
+						result.nodeInfo = new NodeInfo(found);
+					} else {
+						result.success = false;
+						result.errorMsg = "not found";
+					}
+				} catch (Exception e) {
+					result.success = false;
+					result.errorMsg = e.getMessage();
+				}
+				
+				smr.respCmd(cmd, smr.version(), result);
+				return false;
+			} else if (op0.opType == PaxOperationNode.QUERY_DATA) {
+				PaxOperationResultNodeQuery result = new PaxOperationResultNodeQuery();
+				result.replicaVersion = smr.version();
+				try {
+					Node found = nodeTree.find(op0.path);
+					if (found != null) {
+						result.success = true;
+						result.nodeInfo = new NodeInfo();
+						result.nodeInfo.data = found.data;
+						result.nodeInfo.dataVersion = found.dataVersion;
+					} else {
+						result.success = false;
+						result.errorMsg = "not found";
+					}
+				} catch (Exception e) {
+					result.success = false;
+					result.errorMsg = e.getMessage();
+				}
+				
+				smr.respCmd(cmd, smr.version(), result);
+				return false;
+			} else if (op0.opType == PaxOperationNode.QUERY_CHILDREN) {
+				PaxOperationResultNodeQuery result = new PaxOperationResultNodeQuery();
+				result.replicaVersion = smr.version();
+				try {
+					Node found = nodeTree.find(op0.path);
+					if (found != null) {
+						result.success = true;
+						result.nodeInfo = new NodeInfo();
+						List<Node> children = found.children;
+						if (children != null) {
+							for (Node c : children)
+								result.nodeInfo.childrenName.add(c.name);
+						}
+					} else {
+						result.success = false;
+						result.errorMsg = "not found";
+					}
+				} catch (Exception e) {
+					result.success = false;
+					result.errorMsg = e.getMessage();
+				}
+				
+				smr.respCmd(cmd, smr.version(), result);
+				return false;
+			}
 		}
 		
 		return true;
@@ -151,6 +220,40 @@ public class CellLockService implements CellService {
 			}
 			
 			result0 = result;
+		} else if (cmd instanceof PaxOperationNodeCreate) {
+			PaxOperationNodeCreate op = (PaxOperationNodeCreate)cmd;
+			PaxOperationResultNodeUpdate result = new PaxOperationResultNodeUpdate();
+			result.replicaVersion = iid;
+			try {
+				nodeTree.insert(op.path, op.data);
+				result.success = true;
+			} catch (Exception e) {
+				result.success = false;
+				result.errorMsg = e.getMessage();
+			}
+			
+			result0 = result;
+		} else if (cmd instanceof PaxOperationNode) {
+			PaxOperationNode op0 = (PaxOperationNode)cmd;
+			if (op0.opType == PaxOperationNode.DELETE) {
+				PaxOperationResultNodeUpdate result = new PaxOperationResultNodeUpdate();
+				try {
+					nodeTree.delete(op0.path);
+					result.success = true;
+				} catch (Exception e) {
+					result.success = false;
+					result.errorMsg = e.getMessage();
+				}
+			} else if (op0.opType == PaxOperationNode.DELETE_CHILDREN) {
+				PaxOperationResultNodeUpdate result = new PaxOperationResultNodeUpdate();
+				try {
+					nodeTree.deleteAllChildren(op0.path);
+					result.success = true;
+				} catch (Exception e) {
+					result.success = false;
+					result.errorMsg = e.getMessage();
+				}
+			}
 		}
 
 		return result0;

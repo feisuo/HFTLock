@@ -28,7 +28,7 @@ import ht.pax.util.KryoUtil;
  * @author Teng Huang ht201509@163.com
  */
 public class PaxOperationHandleWrite extends PaxOperation {
-	private static final long serialVersionUID = -763618247875553012L; //PaxOperationHandlerWrite
+	private static final long serialVersionUID = -763618247875563012L; //PaxOperationHandlerWrite
 	
 	public HandleFD fd;
 	public byte[] data;

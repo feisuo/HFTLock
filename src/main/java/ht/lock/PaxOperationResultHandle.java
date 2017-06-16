@@ -27,7 +27,7 @@ import ht.pax.util.KryoUtil;
  * @author Teng Huang ht201509@163.com
  */
 public class PaxOperationResultHandle extends PaxOperationResult {
-	private static final long serialVersionUID = -763618247875554005L; //PaxOperationResultHandler
+	private static final long serialVersionUID = -763618247875564005L; //PaxOperationResultHandle
 	
 	public boolean lockHeld;
 	public long dataVersion;

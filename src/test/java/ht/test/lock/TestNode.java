@@ -19,16 +19,16 @@ package ht.test.lock;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-import ht.lock.PaxNode;
+import ht.lock.Node;
 
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class TestPaxNode {
+public class TestNode {
 	@Test
 	public void testInsert() throws Exception {
-		PaxNode root = new PaxNode("/");
-		PaxNode node;
+		Node root = new Node("/");
+		Node node;
 		
 		assertTrue(root.find("/fs") == null);
 		node = root.insert("/fs/", null);
