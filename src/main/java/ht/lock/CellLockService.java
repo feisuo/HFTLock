@@ -161,8 +161,30 @@ public class CellLockService implements CellService {
 			result.replicaVersion = iid;
 			boolean ephemeral = ((op.flag & HandlerFlag.EPHEMERAL) != 0);
 			boolean tryLock = ((op.flag & HandlerFlag.TRY_LOCK) != 0);
+			
+			Node persistentNode = null;
 			try {
-				handlerManager.open(op.fd, op.path, op.data, ephemeral, tryLock);
+				persistentNode = nodeTree.find(op.path);
+			} catch (Exception e) {
+				result.success = false;
+				result.errorMsg = e.getMessage();
+				return result;
+			}
+			
+			if (ephemeral && persistentNode != null) {
+				result.success = false;
+				result.errorMsg = "persistent node exists";
+				return result;
+			}
+			
+			if (!ephemeral && persistentNode == null) {
+				result.success = false;
+				result.errorMsg = "persistent node not exists";
+				return result;
+			}
+			
+			try {
+				handlerManager.open(op.fd, op.path, op.data, ephemeral, tryLock, persistentNode);
 				HandleContext ctx = handlerManager.getContext(op.fd);
 				result.success = true;
 				result.lockHeld = ctx.isLockHeld();

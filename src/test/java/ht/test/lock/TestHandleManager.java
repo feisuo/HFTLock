@@ -44,7 +44,7 @@ public class TestHandleManager {
 		HandleFD fd1 = new HandleFD(1,1);
 		HandleContext ctx1 = null;
 		try {
-			hm.open(fd1, path, null, true, true);
+			hm.open(fd1, path, null, true, true, null);
 		} catch (Exception e) {
 			t = e;
 		}
@@ -57,7 +57,7 @@ public class TestHandleManager {
 		HandleContext ctx2 = null;
 		t = null;
 		try {
-			hm.open(fd2, path, null, true, true);
+			hm.open(fd2, path, null, true, true, null);
 		} catch (Exception e) {
 			t = e;
 		}
@@ -93,7 +93,7 @@ public class TestHandleManager {
 		HandleFD fd1 = new HandleFD(1,1);
 		t = null;
 		try {
-			hm.open(fd1, path, null, true, false); //do not try to lock
+			hm.open(fd1, path, null, true, false, null); //do not try to lock
 		} catch (Exception e) {
 			t = e;
 		}
@@ -107,7 +107,7 @@ public class TestHandleManager {
 		HandleFD fd2 = new HandleFD(2,1);
 		t = null;
 		try {
-			hm.open(fd2, path, null, true, true); //try to lock
+			hm.open(fd2, path, null, true, true, null); //try to lock
 		} catch (Exception e) {
 			t = e;
 		}
@@ -121,7 +121,7 @@ public class TestHandleManager {
 		HandleFD fd3 = new HandleFD(3,1);
 		t = null;
 		try {
-			hm.open(fd3, path, null, true, true); //try to lock
+			hm.open(fd3, path, null, true, true, null); //try to lock
 		} catch (Exception e) {
 			t = e;
 		}
@@ -158,14 +158,14 @@ public class TestHandleManager {
 		HandleFD fd1 = new HandleFD(1,1);
 		
 		try {
-			hm.open(fd1, path, null, true, true);
+			hm.open(fd1, path, null, true, true, null);
 		} catch (Exception e) {
 			
 		}
 		
 		HandleFD fd2 = new HandleFD(2,1);
 		try {
-			hm.open(fd2, path, null, true, true);
+			hm.open(fd2, path, null, true, true, null);
 		} catch (Exception e) {
 			
 		}

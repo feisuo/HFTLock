@@ -56,7 +56,8 @@ public class HandleManager {
 	
 	public void open(HandleFD fd, String path, byte[] data, 
 			boolean ephemeral,
-			boolean tryLock) throws Exception {
+			boolean tryLock,
+			Node persistentNode) throws Exception {
 		
 		HandleContext h = handleMap.get(fd);
 		if (h != null)
@@ -70,7 +71,11 @@ public class HandleManager {
 			path2WatcherList.put(path, watcherList);
 		}
 		
-		newCtx.node = (watcherList.size() == 0 ? new Node() : firstWatcher(watcherList).node);
+		if (ephemeral) {
+			newCtx.node = (watcherList.size() == 0 ? new Node() : firstWatcher(watcherList).node);
+		} else {
+			newCtx.node = persistentNode;
+		}
 		
 		handleMap.put(fd, newCtx);
 		watcherList.put(fd, newCtx);
@@ -170,6 +175,9 @@ public class HandleManager {
 		Map<HandleFD, HandleContext> ctxList = path2WatcherList.get(ctx.path);
 		if (ctxList != null && ctxList.size() > 0)
 			ctxList.remove(ctx.fd());
+		
+		if (ctxList.size() == 0)
+			path2WatcherList.remove(ctx.path);
 	}
 }
 
