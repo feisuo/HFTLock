@@ -214,6 +214,34 @@ public class LSClient extends PaxClient {
 				//do nothing
 				PaxOperationHandleClose op = (PaxOperationHandleClose)req.cmd;
 				handleMap.remove(op.fd);
+			} else {
+				//TODOS
+			}
+		} else if (result0 instanceof PaxOperationResultNodeQuery) {
+			PaxOperationResultNodeQuery result = (PaxOperationResultNodeQuery)result0;
+			ClientReq req = (ClientReq)reqCtx.req;
+			if (req.cmd instanceof PaxOperationNode) {
+				PaxOperationNode op = (PaxOperationNode)req.cmd;
+				if (result0.success) {
+					((Future<NodeInfo>)reqCtx.future).finish(true, null,result.nodeInfo);
+				} else {
+					((Future<NodeInfo>)reqCtx.future).finish(false, result.errorMsg, null);
+				}
+			} else {
+				//TODO
+			}
+		} else if (result0 instanceof PaxOperationResultNodeUpdate) {
+			ClientReq req = (ClientReq)reqCtx.req;
+			if (req.cmd instanceof PaxOperationNodeCreate) {
+				NodeInfo ni = (NodeInfo)reqCtx.arg;
+				if (result0.success)
+					((Future<NodeInfo>)reqCtx.future).finish(true, null, ni);
+				else
+					((Future<NodeInfo>)reqCtx.future).finish(false, result0.errorMsg, null);
+			} else if (req.cmd instanceof PaxOperationNode) {
+				((Future<Void>)reqCtx.future).finish(result0.success, result0.errorMsg, null);
+			} else {
+				//TODO
 			}
 		}
 	}
@@ -231,15 +259,19 @@ public class LSClient extends PaxClient {
 		}
 	}
 	
-	public synchronized Future<Void> createNodeAsync(String path, byte[] value) throws Exception {
+	public synchronized Future<NodeInfo> createNodeAsync(String path, byte[] data) throws Exception {
 		if (uuid() == 0) throw new PaxClientUuidIsNullException();
 		
 		long luid = genIsn();
 		
-		DefaultFuture<Void> future = new DefaultFuture<>();
-		Command cmd = new PaxOperationNodeCreate(uuid(), luid, path, value, -1, -1);
+		DefaultFuture<NodeInfo> future = new DefaultFuture<>();
+		Command cmd = new PaxOperationNodeCreate(uuid(), luid, path, data, -1, -1);
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
-		RequestContext reqCtx = new RequestContext(req, luid, future);
+		NodeInfo ni = new NodeInfo();
+		ni.data = data;
+		ni.dataVersion = 1;
+		ni.treeVersion = 1;
+		RequestContext reqCtx = new RequestContext(req, luid, future, ni);
 		addReqCtx(reqCtx);
 		
 		executeNextRequest();
@@ -262,6 +294,23 @@ public class LSClient extends PaxClient {
 		
 		return future;
 	}
+	
+	public synchronized Future<NodeInfo> queryNode(String path, byte type) throws Exception {
+		if (uuid() == 0) throw new PaxClientUuidIsNullException();
+		
+		long luid = genIsn();
+		
+		DefaultFuture<NodeInfo> future = new DefaultFuture<>();
+		Command cmd = new PaxOperationNode(uuid(), luid, type, path);
+		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
+		RequestContext reqCtx = new RequestContext(req, luid, future);
+		addReqCtx(reqCtx);
+		
+		executeNextRequest();
+		
+		return future;
+	}
+	
 	
 	public synchronized Future<Handle> openAsync(String path, byte[] data, int flag) throws Exception {
 		if (uuid() == 0) throw new PaxClientUuidIsNullException();
@@ -372,8 +421,16 @@ public class LSClient extends PaxClient {
 		return f.get();
 	}
 	
-	public boolean createNode(String path, byte[] value) throws Exception {
-		Future<Void> f = createNodeAsync(path, value);
+	public NodeInfo createNode(String path, byte[] value) throws Exception {
+		Future<NodeInfo> f = createNodeAsync(path, value);
+		f.sync();
+		if (!f.isSuccess())
+			throw new PaxClientException(f.errorMsg());
+		return f.get();
+	}
+	
+	public boolean deleteNode(String path) throws Exception {
+		Future<Void> f = deleteNodeAsync(path);
 		f.sync();
 		if (!f.isSuccess())
 			throw new PaxClientException(f.errorMsg());
@@ -381,21 +438,26 @@ public class LSClient extends PaxClient {
 	}
 	
 	public NodeInfo queryNode(String path) throws Exception {
-		return null; // TODO
+		Future<NodeInfo> f = queryNode(path, PaxOperationNode.QUERY_ALL);
+		f.sync();
+		if (!f.isSuccess())
+			throw new PaxClientException(f.errorMsg());
+		return f.get();
 	}
 	
-	public boolean deleteNode(String path) throws Exception {
-		return false; // TODO
+	public NodeInfo queryNodeData(String path) throws Exception {
+		Future<NodeInfo> f = queryNode(path, PaxOperationNode.QUERY_DATA);
+		f.sync();
+		if (!f.isSuccess())
+			throw new PaxClientException(f.errorMsg());
+		return f.get();
 	}
 	
-	/**
-	 * 
-	 * @param path
-	 * @param data
-	 * @return the version of data
-	 * @throws Exception
-	 */
-	public long updateNode(String path, byte[] data) throws Exception {
-		return 0; // TODO
+	public NodeInfo queryNodeChildren(String path) throws Exception {
+		Future<NodeInfo> f = queryNode(path, PaxOperationNode.QUERY_CHILDREN);
+		f.sync();
+		if (!f.isSuccess())
+			throw new PaxClientException(f.errorMsg());
+		return f.get();
 	}
 }

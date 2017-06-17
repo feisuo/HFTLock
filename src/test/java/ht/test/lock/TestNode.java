@@ -17,9 +17,13 @@
 package ht.test.lock;
 
 import static org.junit.Assert.*;
+
+import java.util.LinkedList;
+
 import org.junit.Test;
 
 import ht.lock.Node;
+import ht.lock.NodeTree;
 
 /**
  * @author Teng Huang ht201509@163.com
@@ -49,5 +53,37 @@ public class TestNode {
 		assertTrue(node != null && node.name.equals("tablets"));
 		
 		root.print(System.out);
+	}
+	
+	public void dump(Node root) {
+		LinkedList<Node> l = new LinkedList<Node>();
+		l.add(root);
+		while (l.size() > 0) {
+			Node n = l.pollFirst();
+			System.out.println(n.name);
+			if (n.children != null) {
+				for (Node c : n.children) {
+					l.add(c);
+				}
+			}
+		}
+	}
+	
+	@Test
+	public void test02() throws Exception {
+		NodeTree nodeTree = new NodeTree();
+		nodeTree.insert("/ls", null);
+		nodeTree.insert("/ls/local", null);
+		nodeTree.insert("/ls/local/bigtable", null);
+		nodeTree.insert("/ls/local/bigtable/master", null);
+		nodeTree.insert("/ls/local/bigtable/tablets", null);
+		
+		dump(nodeTree.root());
+		
+		assertNotNull(nodeTree.find("/ls"));
+		assertNotNull(nodeTree.find("/ls/local"));
+		assertNotNull(nodeTree.find("/ls/local/bigtable"));
+		assertNotNull(nodeTree.find("/ls/local/bigtable/master"));
+		assertNotNull(nodeTree.find("/ls/local/bigtable/tablets"));
 	}
 }

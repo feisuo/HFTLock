@@ -34,6 +34,34 @@ public class ParsedPath {
 		return new DefaultIterator();
 	}
 	
+	public class Cursor {
+		int index;
+		
+		public boolean isValid() {
+			return (index >= 0 && index < slice.length) ? true : false;
+		}
+		
+		public String get() {
+			return slice[index];
+		}
+		
+		public boolean isLast() {
+			return index == slice.length-1;
+		}
+		
+		public void moveForward() {
+			index++;
+		}
+		
+		public void moveBack() {
+			index--;
+		}
+	}
+	
+	public Cursor cursor() {
+		return new Cursor();
+	}
+	
 	public static ParsedPath parse(String path0) throws Exception {
 		if (!path0.startsWith("/"))
 			throw new IllegalArgumentException("path should starts with /");

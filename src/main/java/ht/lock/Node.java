@@ -83,7 +83,7 @@ public class Node {
 	
 	public Node find(String path) throws Exception {
 		ParsedPath pp = ParsedPath.parse(path);
-		return find(pp.iterator());
+		return find0(pp.cursor());
 	}
 	
 	public Node insert(String path, byte[] data) throws Exception {
@@ -93,79 +93,23 @@ public class Node {
 		return insert(it, data);
 	}
 	
-	public boolean delete(String path) throws Exception {
-		ParsedPath pp = ParsedPath.parse(path);
-		return delete(pp.iterator());
-	}
-	
-	public boolean deleteAllChild(String path) throws Exception {
-		ParsedPath pp = ParsedPath.parse(path);
-		return deleteAllChild(pp.iterator());
-	}
-	
-	public long updateValue(String path, byte[] data) throws Exception {
-		ParsedPath pp = ParsedPath.parse(path);
-		return updateValue(pp.iterator(), data);		
-	}
-	
-	public List<Node> listChildren(String path) throws Exception {
-		ParsedPath pp = ParsedPath.parse(path);
-		return listChildren(pp.iterator());	
-	}
-
-	
-	/**
-	 * 
-	 * @param pathSlice example: {"/", "fs", "bigtable", "tablets"} is "/fs/bigtable/tablets"
-	 * @param startIdx inclusive
-	 * @param endIdx exclusive
-	 * @return
-	 */
-//	public Node find(String[] pathSlice, int startIdx, int endIdx) {
-//		if (startIdx >= endIdx)
-//			return null;
-//
-//		if (pathSlice[startIdx].equals(name)) {
-//			if (startIdx == endIdx - 1)
-//				return this;
-//			else {
-//				if (children == null)
-//					return null;
-//				else {
-//					for (Node node : children) {
-//						Node ret = node.find(pathSlice, startIdx+1, endIdx);
-//						if (ret != null)
-//							return ret;
-//					}
-//					return null;
-//				}
-//			}
-//		} else {
-//			return null;
-//		}
-//	}
-	
-	public Node find(Iterator<String> pathIt) {
-		if (!pathIt.hasNext())
+	public Node find0(ParsedPath.Cursor cursor) {
+		if (!cursor.isValid())
 			return null;
 		
-		
-		boolean hasNext1 = pathIt.hasNext();
-		String slice = pathIt.next();
-		boolean hasNext2 = pathIt.hasNext();
-		boolean isLast = (hasNext1 && !hasNext2);
-		
-		if (slice.equals(name)) {
-			if (isLast)
+		if (cursor.get().equals(name)) {
+			if (cursor.isLast())
 				return this;
 			else {
-				if (children == null)
+				if (children == null || children.size() == 0)
 					return null;
 				else {
-					for (Node node : children) {
-						Node ret = node.find(pathIt);
+					for (Node child : children) {
+						cursor.moveForward();
+						Node ret = child.find0(cursor);
 						if (ret != null)
 							return ret;
+						cursor.moveBack();
 					}
 					return null;
 				}
@@ -174,42 +118,6 @@ public class Node {
 			return null;
 		}
 	}
-//	
-//	public Node insert(String[] pathSlice, int startIdx, byte[] value) throws Exception {
-//		Node child = null;
-//		if (children != null) {
-//			for (Node node : children) {
-//				if (node.name.equals(pathSlice[startIdx])) {
-//					child = node;
-//					break;
-//				}
-//			}
-//		}
-//		
-//		if (child == null) {
-//			if (startIdx == pathSlice.length - 1) {
-//				if (children == null)
-//					children = new LinkedList<Node>();
-//				
-//				Node node = new Node(pathSlice[startIdx]);
-//				node.data = value;
-//				node.dataVersion++;
-//				node.parent = this;
-//				children.add(node);
-//				incrVersion();
-//				
-//				return node;
-//			} else {
-//				throw new NodeException(ErrorMessage.PAX_NODE_NOT_EXISTS);
-//			}
-//		} else {
-//			if (startIdx == pathSlice.length - 1)
-//				throw new NodeException(ErrorMessage.PAX_NODE_EXISTS);
-//			else {
-//				return child.insert(pathSlice, startIdx + 1, value);
-//			}
-//		}
-//	}
 	
 	Node insert(Iterator<String> pathIt, byte[] value) throws Exception {
 		assert(pathIt.hasNext());
@@ -235,10 +143,13 @@ public class Node {
 				
 				Node node = new Node(slice);
 				node.data = value;
+				node.treeVersion = 1;
 				node.dataVersion++;
 				node.parent = this;
 				children.add(node);
 				incrVersion();
+				
+				System.out.println(name+" add "+node.name);
 				
 				return node;
 			} else {
@@ -259,8 +170,8 @@ public class Node {
 			parent.incrVersion();
 	}
 	
-	public boolean delete(Iterator<String> pathIt) throws Exception {
-		Node node = find(pathIt);
+	public boolean delete(String path) throws Exception {
+		Node node = find(path);
 		if (node == this)
 			throw new NodeException(ErrorMessage.PAX_NODE_PERMISSION);
 		
@@ -282,8 +193,8 @@ public class Node {
 		return true;
 	}
 	
-	public boolean deleteAllChild(Iterator<String> pathIt) throws Exception {
-		Node node = find(pathIt);
+	public boolean deleteAllChild(String path) throws Exception {
+		Node node = find(path);
 		if (node == null)
 			throw new NodeException(ErrorMessage.PAX_NODE_NOT_EXISTS);
 		
@@ -296,8 +207,8 @@ public class Node {
 		return true;
 	}
 	
-	public long updateValue(Iterator<String> pathIt, byte[] data) throws Exception {
-		Node node = find(pathIt);
+	public long updateValue(String path, byte[] data) throws Exception {
+		Node node = find(path);
 		if (node == null)
 			throw new NodeException(ErrorMessage.PAX_NODE_NOT_EXISTS);
 		
@@ -307,8 +218,8 @@ public class Node {
 		return node.dataVersion;
 	}
 	
-	public List<Node> listChildren(Iterator<String> pathIt) throws Exception {
-		Node node = find(pathIt);
+	public List<Node> listChildren(String path) throws Exception {
+		Node node = find(path);
 		if (node == null)
 			throw new NodeException(ErrorMessage.PAX_NODE_NOT_EXISTS);
 		

@@ -8,6 +8,10 @@ public class NodeTree {
 	 */
 	Node pnodeRoot = new Node("/");
 	
+	public Node root() {
+		return pnodeRoot;
+	}
+	
 	public Node find(String path) throws Exception {
 		return pnodeRoot.find(path);
 	}
