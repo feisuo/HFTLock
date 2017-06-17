@@ -22,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import ht.pax.common.HandleFD;
 import ht.pax.internal.exception.PaxInternalException;
 
 /**

@@ -16,58 +16,73 @@
  */
 package ht.lock;
 
+import java.io.Serializable;
+
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-
-import ht.pax.common.PaxOperation;
-import ht.pax.util.KryoUtil;
 
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class PaxOperationHandleOpen extends PaxOperation {
-	private static final long serialVersionUID = -763618247875563010L; //PaxOperationHandlerOpen
+public class HandleEvent implements Serializable, KryoSerializable {
+	
+	private static final long serialVersionUID = -763618247875551016L; //HandleEvent
+	
+	final static int EVENT_TYPE_LOCK = 1;
+	final static int EVENT_TYPE_UNLOCK = 1 << 1;
+	final static int EVENT_TYPE_NODE_CHILDREN_CHANGE = 1 << 2;
 	
 	public HandleFD fd;
-	public String path;
-	public byte[] data;
-	public int flag;
+	public int type;
 	
-	public PaxOperationHandleOpen() {
+	public HandleEvent() {
 		
 	}
 	
-	public PaxOperationHandleOpen(long uuid, long luid, HandleFD fd, String path, byte[] data, int flag) {
-		super(uuid, luid);
+	public HandleEvent(HandleFD fd) {
 		this.fd = fd;
-		this.path = path;
-		this.data = data;
-		this.flag = flag;
 	}
 	
-	@Override
-	public void write (Kryo kryo, Output output) {
-		super.write(kryo, output);
-		kryo.writeClassAndObject(output, fd);
-		output.writeString(path);
-		output.writeInt(flag);
-		KryoUtil.writeByteArray(output, data);
+	public boolean isLock() {
+		return (type & EVENT_TYPE_LOCK) != 0;
 	}
-
-	@Override
-	public void read (Kryo kryo, Input input) {
-		super.read(kryo, input);
-		fd = (HandleFD)kryo.readClassAndObject(input);
-		path = input.readString();
-		flag = input.readInt();
-		data = KryoUtil.readByteArray(input);
+	
+	public void setLock() {
+		type |= EVENT_TYPE_LOCK;
+	}
+	
+	public boolean isUnlock() {
+		return  (type & EVENT_TYPE_UNLOCK) != 0;
+	}
+	
+	public void setUnlock() {
+		type |= EVENT_TYPE_UNLOCK;
+	}
+	
+	public boolean isNodeChildrenChange() {
+		return (type & EVENT_TYPE_NODE_CHILDREN_CHANGE) != 0;
+	}
+	
+	public void setNodeChildrenChange() {
+		type |= EVENT_TYPE_NODE_CHILDREN_CHANGE;
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("{uuid:%d,luid:%d,type:openHandler,fd:%s,path:%s,data:%s,flag:%d}", 
-				uuid, luid, fd, path, data, flag);
+		return String.format("{fd:%s,type:%s}", fd, Integer.toBinaryString(type));
+	}
+	
+	@Override
+	public void write (Kryo kryo, Output output) {
+		kryo.writeClassAndObject(output, fd);
+		output.writeInt(type);
+	}
+
+	@Override
+	public void read (Kryo kryo, Input input) {
+		fd = (HandleFD)kryo.readClassAndObject(input);
+		type = input.readInt();
 	}
 }
-

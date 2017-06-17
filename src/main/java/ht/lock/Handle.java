@@ -16,9 +16,6 @@
  */
 package ht.lock;
 
-import ht.pax.common.HandleEvent;
-import ht.pax.common.HandleFD;
-
 /**
  * @author Teng Huang ht201509@163.com
  */
@@ -45,4 +42,10 @@ public interface Handle {
 	boolean lock() throws Exception;
 	
 	void close() throws Exception;
+	
+	public boolean isClosed();
+	
+	public boolean isOpening();
+	
+	public boolean isOpened();
 }

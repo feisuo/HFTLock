@@ -24,10 +24,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
-import ht.pax.common.HandleFD;
 import ht.pax.internal.exception.PaxInternalException;
 import ht.pax.util.ReflectionUtil;
 import ht.lock.HandleContext;
+import ht.lock.HandleFD;
 import ht.lock.HandleManager;
 
 /**

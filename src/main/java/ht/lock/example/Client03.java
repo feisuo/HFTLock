@@ -20,9 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ht.pax.common.Config;
-import ht.pax.common.HandleEvent;
-import ht.pax.common.HandlerFlag;
 import ht.lock.Handle;
+import ht.lock.HandleEvent;
+import ht.lock.HandleFlag;
 import ht.lock.LSClient;
 
 /**
@@ -44,7 +44,7 @@ public class Client03 {
 		
 		logger.info("[{}] start success, uuid={}", lsc.uuid(), lsc.uuid());
 		
-		Handle handle = lsc.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandlerFlag.EPHEMERAL|HandlerFlag.TRY_LOCK);
+		Handle handle = lsc.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandleFlag.EPHEMERAL|HandleFlag.TRY_LOCK);
 		
 		logger.info("[{}] open success, handler={}", lsc.uuid(), handle);
 		

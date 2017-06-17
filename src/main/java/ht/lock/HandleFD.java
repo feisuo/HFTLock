@@ -16,46 +16,58 @@
  */
 package ht.lock;
 
+import java.io.Serializable;
+
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-
-import ht.pax.common.PaxOperation;
 
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class PaxOperationHandleLock extends PaxOperation {
+final public class HandleFD implements Serializable, KryoSerializable {
+
+	private static final long serialVersionUID = -763618247875551015L; //HandleFD
 	
-	private static final long serialVersionUID = -763618247875563014L; //PaxOperationHandlerLock
+	public long uuid;
+	public long luid;
 	
-	public HandleFD fd;
-	
-	public PaxOperationHandleLock() {
-		
+	public HandleFD(long uuid, long luid) {
+		this.uuid = uuid;
+		this.luid = luid;
 	}
 	
-	public PaxOperationHandleLock(long uuid, long luid, HandleFD fd) {
-		super(uuid, luid);
-		this.fd = fd;
+	@Override
+	public int hashCode() {
+		int h = 0;
+		h = h * 31 + Long.hashCode(uuid);
+		h = h * 31 + Long.hashCode(luid);
+		return h;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		HandleFD hfd = (HandleFD)o;
+		return uuid == hfd.uuid && luid == hfd.luid;
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("{uuid:%d,luid:%d,type:lockHandler,fd:%s}", 
-				uuid, luid, fd);
-	}
-	
-	@Override
-	public void write (Kryo kryo, Output output) {
-		super.write(kryo, output);
-		kryo.writeClassAndObject(output, fd);
+		return String.format("{uuid:%d,luid:%d}", uuid, luid);
 	}
 	
 
 	@Override
+	public void write (Kryo kryo, Output output) {
+		output.writeLong(uuid);
+		output.writeLong(luid);
+	}
+
+	@Override
 	public void read (Kryo kryo, Input input) {
-		super.read(kryo, input);
-		fd = (HandleFD)kryo.readClassAndObject(input);
+		uuid = input.readLong();
+		luid = input.readLong();
 	}
 }
+

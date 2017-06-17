@@ -13,9 +13,6 @@ import ht.pax.common.Command;
 import ht.pax.common.Config;
 import ht.pax.common.DefaultFuture;
 import ht.pax.common.Future;
-import ht.pax.common.HandleEvent;
-import ht.pax.common.HandleFD;
-import ht.pax.common.HandlerFlag;
 import ht.pax.common.Message;
 import ht.pax.common.PaxOperationResult;
 import ht.pax.internal.message.ClientReq;
@@ -26,6 +23,12 @@ public class LSClient extends PaxClient {
 	
 	HashMap<HandleFD, HandleImpl> handleMap = new HashMap<HandleFD, HandleImpl>();
 	
+	enum HandleState {
+		Opened,
+		Closed,
+		Opening
+	}
+	
 	public class HandleImpl implements Handle {
 		
 		final HandleFD fd;
@@ -34,12 +37,16 @@ public class LSClient extends PaxClient {
 		boolean lockHeld;
 		byte[] data;
 		long dataVersion;
+		
+		
+		HandleState state;
 		ConcurrentLinkedQueue<HandleEvent> handleEventQueue = new ConcurrentLinkedQueue<>();
 		
 		public HandleImpl(HandleFD fd, String path, boolean ephemeral) {
 			this.fd = fd;
 			this.path = path;
 			this.ephemeral = ephemeral;
+			this.state = HandleState.Closed;
 		}
 		
 		@Override
@@ -104,12 +111,48 @@ public class LSClient extends PaxClient {
 			}
 		}
 		
+		public boolean isClosed() {
+			synchronized(LSClient.this) {
+				return state == HandleState.Closed;
+			}
+		}
+		
+		public void setClosed() {
+			synchronized(LSClient.this) {
+				state = HandleState.Closed;
+			}
+		}
+		
+		public boolean isOpened() {
+			synchronized(LSClient.this) {
+				return state == HandleState.Opened;
+			}
+		}
+		
+		public void setOpened() {
+			synchronized(LSClient.this) {
+				state = HandleState.Opened;
+			}
+		}
+		
+		public boolean isOpening() {
+			return state == HandleState.Opening;
+		}
+		
+		public void setOpening() {
+			state = HandleState.Opening;
+		}
+		
 		public void offerHandlerEventNotify(HandleEvent event) {
+			if (!isOpened())
+				return;
 			handleEventQueue.offer(event);
 		}
 		
 		@Override
 		public HandleEvent pollHandlerEventNotify() {
+			if (!isOpened())
+				return null;
 			return handleEventQueue.poll();
 		}
 		
@@ -163,65 +206,86 @@ public class LSClient extends PaxClient {
 	@SuppressWarnings("unchecked")
 	protected void onOperatorResult(PaxOperationResult result0, RequestContext reqCtx) {
 		if (result0 instanceof PaxOperationResultHandle) {
-			PaxOperationResultHandle result = (PaxOperationResultHandle)result0;
-			if (!result.success) {
-				((Future<Object>)reqCtx.future).finish(result.success, result.errorMsg, null);
-				return;
-			}
-			
+			PaxOperationResultHandle result = (PaxOperationResultHandle)result0;			
 			ClientReq req = (ClientReq)reqCtx.req;
 			if (req.cmd instanceof PaxOperationHandleOpen) {
 				PaxOperationHandleOpen op = (PaxOperationHandleOpen)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
-				if (handle != null) {
+				if (handle == null) {
+					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					return;
+				}
+				
+				if (result.success) {
 					handle.setData(result.data);
 					handle.setDataVersoin(result.dataVersion);
 					handle.setLockHeld(result.lockHeld);
+					handle.setOpened();
 					((Future<Handle>)reqCtx.future).finish(true, null, handle);
 				} else {
-					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					handle.setClosed();
+					((Future<Object>)reqCtx.future).finish(false, result.errorMsg, null);
 				}
 			} else if (req.cmd instanceof PaxOperationHandleRead) {
 				PaxOperationHandleRead op = (PaxOperationHandleRead)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
-				if (handle != null) {
+				if (handle == null) {
+					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					return;
+				}
+				
+				if (result.success) {
 					handle.setData(result.data);
 					handle.setDataVersoin(result.dataVersion);
 					((Future<byte[]>)reqCtx.future).finish(true, null, handle.data);
 				} else {
-					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					//TODO: should closed in some cases.
+					((Future<Object>)reqCtx.future).finish(false, result.errorMsg, null);
 				}
 			} else if (req.cmd instanceof PaxOperationHandleWrite) {
 				PaxOperationHandleWrite op = (PaxOperationHandleWrite)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
-				if (handle != null) {
+				if (handle == null) {
+					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					return;
+				}
+				
+				if (result.success) {
 					handle.setData(op.data);
 					handle.setDataVersoin(result.dataVersion);
 					((Future<Long>)reqCtx.future).finish(true, null, handle.dataVersion);	
 				} else {
-					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					//TODO: should closed in some cases.
+					((Future<Object>)reqCtx.future).finish(false, result.errorMsg, null);
 				}
 			} else if (req.cmd instanceof PaxOperationHandleLock) {
 				PaxOperationHandleLock op = (PaxOperationHandleLock)req.cmd;
 				HandleImpl handle = handleMap.get(op.fd);
-				if (handle != null) {
+				if (handle == null) {
+					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					return;
+				}
+				
+				if (result.success) {
 					handle.setLockHeld(true);
 					((Future<Boolean>)reqCtx.future).finish(true, null, true);
 				} else {
-					logger.warn("[{}] handle not fould, result={}", uuid(), result);
+					//TODO: should closed in some cases.
+					((Future<Object>)reqCtx.future).finish(false, result.errorMsg, null);
 				}
 			} else if (req.cmd instanceof PaxOperationHandleClose) {
 				//do nothing
 				PaxOperationHandleClose op = (PaxOperationHandleClose)req.cmd;
-				handleMap.remove(op.fd);
+				HandleImpl handle = handleMap.remove(op.fd);
+				handle.setClosed();
+				((Future<Void>)reqCtx.future).finish(true, null, null);
 			} else {
-				//TODOS
+				//TODO:
 			}
 		} else if (result0 instanceof PaxOperationResultNodeQuery) {
 			PaxOperationResultNodeQuery result = (PaxOperationResultNodeQuery)result0;
 			ClientReq req = (ClientReq)reqCtx.req;
 			if (req.cmd instanceof PaxOperationNode) {
-				PaxOperationNode op = (PaxOperationNode)req.cmd;
 				if (result0.success) {
 					((Future<NodeInfo>)reqCtx.future).finish(true, null,result.nodeInfo);
 				} else {
@@ -320,7 +384,8 @@ public class LSClient extends PaxClient {
 		DefaultFuture<Handle> future = new DefaultFuture<>();
 		
 		HandleFD fd = new HandleFD(uuid(), luid);
-		HandleImpl handle = new HandleImpl(fd, path, ((flag & HandlerFlag.EPHEMERAL) != 0));
+		HandleImpl handle = new HandleImpl(fd, path, ((flag & HandleFlag.EPHEMERAL) != 0));
+		handle.setOpening();
 		handleMap.put(fd, handle);
 		
 		Command cmd = new PaxOperationHandleOpen(uuid(), luid, fd, path, data, flag);
@@ -335,12 +400,10 @@ public class LSClient extends PaxClient {
 	
 	public synchronized Future<byte[]> readAsync(Handle handle) throws Exception {
 		if (uuid() == 0) throw new PaxClientUuidIsNullException();
-		
-		if (!handleMap.containsKey(handle.fd()))
-			throw new PaxClientException("fd not fould");
+		if (!handleMap.containsKey(handle.fd())) throw new PaxClientException("fd not fould");
+		if (!handle.isOpened()) throw new PaxClientException("handle not opened");
 		
 		long luid = genIsn();
-		
 		DefaultFuture<byte[]> future = new DefaultFuture<>();
 		Command cmd = new PaxOperationHandleRead(uuid(), luid, handle.fd());
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
@@ -354,12 +417,10 @@ public class LSClient extends PaxClient {
 	
 	public synchronized Future<Long> writeAsync(Handle handle, byte[] data) throws Exception {
 		if (uuid() == 0) throw new PaxClientUuidIsNullException();
-		
-		if (!handleMap.containsKey(handle.fd()))
-			throw new PaxClientException("fd not fould");
+		if (!handleMap.containsKey(handle.fd())) throw new PaxClientException("fd not fould");	
+		if (!handle.isOpened()) throw new PaxClientException("handle not opened");
 		
 		long luid = genIsn();
-		
 		DefaultFuture<Long> future = new DefaultFuture<>();
 		Command cmd = new PaxOperationHandleWrite(uuid(), luid, handle.fd(), data);
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
@@ -373,12 +434,10 @@ public class LSClient extends PaxClient {
 	
 	public synchronized Future<Void> closeAsync(Handle handle) throws Exception {
 		if (uuid() == 0) throw new PaxClientUuidIsNullException();
-		
-		if (!handleMap.containsKey(handle.fd()))
-			throw new PaxClientException("fd not fould");
+		if (!handleMap.containsKey(handle.fd())) throw new PaxClientException("fd not fould");
+		if (!handle.isOpened()) throw new PaxClientException("handle not opened");
 		
 		long luid = genIsn();
-		
 		DefaultFuture<Void> future = new DefaultFuture<>();
 		Command cmd = new PaxOperationHandleClose(uuid(), luid, handle.fd());
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);
@@ -392,12 +451,10 @@ public class LSClient extends PaxClient {
 	
 	public synchronized Future<Boolean> lockAsync(Handle handle) throws Exception {
 		if (uuid() == 0) throw new PaxClientUuidIsNullException();
-		
-		if (!handleMap.containsKey(handle.fd()))
-			throw new PaxClientException("fd not fould");
+		if (!handleMap.containsKey(handle.fd())) throw new PaxClientException("fd not fould");
+		if (!handle.isOpened()) throw new PaxClientException("handle not opened");
 		
 		long luid = genIsn();
-		
 		DefaultFuture<Boolean> future = new DefaultFuture<>();
 		Command cmd = new PaxOperationHandleLock(uuid(), luid, handle.fd());
 		Message req = new ClientReq(uuid(), getLeaderInfo(), cmd);

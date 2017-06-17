@@ -19,42 +19,7 @@ package ht.lock;
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class HandleContext {
-	HandleFD fd;
-	String path;
-	Node node;
-	boolean lockHeld;
-	
-	public HandleContext(HandleFD fd, String path) {
-		this.fd = fd;
-		this.path = path;
-	}
-	
-	public HandleFD fd() {
-		return fd;
-	}
-	
-	public String path() {
-		return path;
-	}
-	
-	public Node node() {
-		return node;
-	}
-	
-	public void setLockHeld(boolean b) {
-		lockHeld = b;
-	}
-	
-	public boolean isLockHeld() {
-		return lockHeld;
-	}
-	
-	public byte[] data() {
-		return node.data;
-	}
-	
-	public long dataVersion() {
-		return node.dataVersion;
-	}
+final public class HandleFlag {
+	final public static int EPHEMERAL = 1;
+	final public static int TRY_LOCK = 1 << 1;
 }

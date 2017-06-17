@@ -27,9 +27,6 @@ import ht.pax.api.CellService;
 import ht.pax.api.SMRService;
 import ht.pax.common.ClientConnection;
 import ht.pax.common.Command;
-import ht.pax.common.HandleEvent;
-import ht.pax.common.HandleFD;
-import ht.pax.common.HandlerFlag;
 import ht.pax.common.LeaderInfo;
 import ht.pax.common.PaxOperationResult;
 import ht.pax.internal.message.EventNotify;
@@ -159,8 +156,8 @@ public class CellLockService implements CellService {
 			PaxOperationHandleOpen op = (PaxOperationHandleOpen)cmd;
 			PaxOperationResultHandle result = new PaxOperationResultHandle();
 			result.replicaVersion = iid;
-			boolean ephemeral = ((op.flag & HandlerFlag.EPHEMERAL) != 0);
-			boolean tryLock = ((op.flag & HandlerFlag.TRY_LOCK) != 0);
+			boolean ephemeral = ((op.flag & HandleFlag.EPHEMERAL) != 0);
+			boolean tryLock = ((op.flag & HandleFlag.TRY_LOCK) != 0);
 			
 			Node persistentNode = null;
 			try {

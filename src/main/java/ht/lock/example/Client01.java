@@ -16,58 +16,66 @@
  */
 package ht.lock.example;
 
-import ht.pax.common.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ht.lock.Handle;
 import ht.lock.HandleFlag;
 import ht.lock.LSClient;
+import ht.pax.common.Config;
+import ht.pax.util.ReflectionUtil;
 
 /**
  * @author Teng Huang ht201509@163.com
  */
-public class Client02 {
+public class Client01 {
+	private static Logger logger = LoggerFactory.getLogger(Client01.class);
+	
+	public void buildTree(LSClient lsc) throws Exception {
+		logger.info("[{}] start build tree", lsc.uuid());
+		
+		lsc.createNode("/ls", null);
+		lsc.createNode("/ls/local", null);
+		lsc.createNode("/ls/local/bigtable", null);
+		lsc.createNode("/ls/local/bigtable/master", null);
+		lsc.createNode("/ls/local/bigtable/tablets", null);
+	}
+	
 	public void run() throws Exception {
 		Config baseConfig = new Config()
 				.setUuid(90)
 				.setPeers("1:localhost:42221,2:localhost:42222,3:localhost:42223")
 				.setName("client");
 		
-
 		LSClient lsc = new LSClient(baseConfig);
 		lsc.start();
 		
-		System.out.println("uuid="+lsc.uuid());
+		buildTree(lsc);
 		
-		Handle handler = lsc.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandleFlag.EPHEMERAL|HandleFlag.TRY_LOCK);
-		
-		System.out.println("open success, handler="+handler);
-		
-		Thread.sleep(1000);
-		
-		if (handler.isLockHeld()) {
-			byte[] data = "234".getBytes();
-			
-			handler.write(data);
-			
-			System.out.println("write success, handler="+handler);
-			
-			Thread.sleep(1000);
-			
-			byte[] data2 = handler.read();
-			
-			System.out.println("read success, handler="+handler+", data="+ new String(data2));
+		Throwable t = null;
+		try {
+			lsc.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandleFlag.TRY_LOCK | HandleFlag.EPHEMERAL);
+		} catch (Exception e) {
+			t = e;
 		}
 		
-		Thread.sleep(1000);
+		logger.info("[{}] open result, e={}", lsc.uuid(), t);
 		
-		handler.close();
+		Handle handle = lsc.open("/ls/local/bigtable/master", new byte[]{1,2,3}, HandleFlag.TRY_LOCK);
+		byte[] writeData = new byte[]{2,3,4};
+		handle.write(writeData);
+		byte[] readData = handle.read();
 		
-		Thread.sleep(1000);
+		logger.info("[{}] (write.data == read.data) is {}", lsc.uuid(), ReflectionUtil.isEquals(writeData, readData));
+		handle.close();
 		
+		logger.info("[{}] stop", lsc.uuid());
 		lsc.stop();
 	}
 	
+	
 	public static void main(String args[]) throws Exception {
-		Client02 c = new Client02();
+		Client01 c = new Client01();
 		c.run();
 	}
 }
