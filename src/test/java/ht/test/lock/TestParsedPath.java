@@ -8,7 +8,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
-import ht.lock.ParsedPath;
+import com.tchaicatkovsky.lock.ParsedPath;
 
 public class TestParsedPath {
 	@Test

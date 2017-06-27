@@ -22,8 +22,8 @@ import java.util.LinkedList;
 
 import org.junit.Test;
 
-import ht.lock.Node;
-import ht.lock.NodeTree;
+import com.tchaicatkovsky.lock.Node;
+import com.tchaicatkovsky.lock.NodeTree;
 
 /**
  * @author Teng Huang ht201509@163.com

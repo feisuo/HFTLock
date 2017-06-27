@@ -24,11 +24,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
-import ht.pax.internal.exception.PaxInternalException;
-import ht.pax.util.ReflectionUtil;
-import ht.lock.HandleContext;
-import ht.lock.HandleFD;
-import ht.lock.HandleManager;
+import com.tchaicatkovsky.lock.HandleContext;
+import com.tchaicatkovsky.lock.HandleFD;
+import com.tchaicatkovsky.lock.HandleManager;
+import com.tchaicatkovsky.pax.internal.exception.PaxInternalException;
+import com.tchaicatkovsky.pax.util.ReflectionUtil;
 
 /**
  * @author Teng Huang ht201509@163.com
